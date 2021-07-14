@@ -1,0 +1,107 @@
+﻿{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.2",
+
+
+  "body": [
+    {
+      "type": "Container",
+      "items": [
+
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "verticalContentAlignment": "top",
+              "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "${previewUrl}"
+              },
+              "items": [
+                {
+                  "$when": "${thumbnailurl.Length >2}",
+                  "size": "large",
+                  "style": "default",
+                  "type": "Image",
+                  "url": "${thumbnailurl}",
+                  "width": "auto",
+                  "height": "auto"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${docTitle}",
+                  "wrap": true,
+                  "color": "accent",
+                  "size": "large",
+                  "weight": "bolder",
+                  "fontType": "default",
+                  "horizontalAlignment": "left"
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "${summary}",
+                  "wrap": true,
+                  "maxLines": 4,
+                  "spacing": "padding",
+                  "fontType": "default",
+                  "weight": "default",
+                  "size": "default"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Source:",
+          "value": "${sourceTreepath}"
+        },
+        {
+          "title": "Authors:",
+          "value": "${authorName}",
+          "$when": "${authorName.Length >2}"
+
+        },
+        {
+          "title": "Format:",
+          "value": "${fileType}"
+        }
+      ],
+      "separator": true,
+      "spacing": "extraLarge"
+
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Direct Link",
+      "url": "${directlinkUrl}",
+      "style": "positive",
+      "width": "stretch",
+      "$when": "${directlinkUrl.Length >2}"
+
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Document Preview",
+      "url": "${previewUrl}",
+      "style": "positive",
+      "width": "stretch",
+      "$when": "${previewUrl.Length >2}"
+    }
+  ]
+}

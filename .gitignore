@@ -1,0 +1,23 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Teams App/bin/Debug/netcoreapp3.1
+/Teams App/Properties/PublishProfiles/teamsbotintegration - Web Deploy.pubxml.user
+/Teams App/Properties/PublishProfiles
+/Teams App/Properties/ServiceDependencies/teamsbotintegration - Web Deploy/profile.arm.json
+/Teams App/TeamsAppManifest/TeamsAppManifest.zip
+/Teams App/.vs/TeamsMessagingExtensionsSearch/config/applicationhost.config
+/Teams App/obj/Debug/netcoreapp3.1/staticwebassets
+/Teams App/obj/Debug/netcoreapp3.1
+/Teams App/obj/Release/netcoreapp3.1
+/Teams App/obj
+/TeamsApp/bin/Debug/net5.0
+/TeamsApp/bin/Release/net5.0
+/TeamsApp/obj
+/TeamsApp/SinequaForTeams_v1.0/manifest.json.bak
+/TeamsApp/Properties/PublishProfiles
+/TeamsApp/SinequaForTeams_v1.0/SinequaForTeams_v1.0.zip
+/TeamsApp/Properties/ServiceDependencies
+/TeamsApp/.vs/TeamsMessagingExtensionsSearch/config/applicationhost.config
+/TeamsApp/SinequaForTeams_v1.0/SinequaForTeams_v0.002.zip

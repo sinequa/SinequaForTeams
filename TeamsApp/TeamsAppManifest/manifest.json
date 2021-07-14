@@ -1,0 +1,110 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.9/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.9",
+  "version": "0.104",
+  "id": "<<MSFTAPPID>>",
+  "packageName": "com.sinequa.teams.searchExtension",
+  "developer": {
+    "name": "Sinequa",
+    "websiteUrl": "https://www.sinequa.com",
+    "privacyUrl": "https://example.azurewebsites.net/privacy",
+    "termsOfUseUrl": "https://example.azurewebsites.net/termsofuse",
+    "mpnId": "6345948"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "SNQA",
+    "full": "Sinequa 4 Teams"
+  },
+  "description": {
+    "short": "Sinequa 4 Teams",
+    "full": "Search across various sources using the Sinequa search platform"
+  },
+  "accentColor": "#ABCDEF",
+  "staticTabs": [
+    {
+      "entityId": "conversations",
+      "scopes": [
+        "personal"
+      ]
+    },
+    {
+      "entityId": "covidsearch",
+      "name": "Scientific Search",
+      "contentUrl": "https://covidsearch.sinequa.com/app/covid-search/",
+      "scopes": [
+        "personal"
+      ]
+    },
+    {
+      "entityId": "about",
+      "scopes": [
+        "personal"
+      ]
+    }
+  ],
+  "bots": [
+    {
+      "botId": "<<MSFTAPPID>>",
+      "scopes": [
+        "groupchat",
+        "team",
+        "personal"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "composeExtensions": [
+    {
+      "botId": "<<MSFTAPPID>>",
+      "canUpdateConfiguration": true,
+      "commands": [
+        {
+          "id": "searchQuery",
+          "type": "query",
+          "title": "New search...",
+          "description": "search with Sinequa",
+          "initialRun": false,
+          "fetchTask": false,
+          "context": [
+            "message",
+            "commandBox",
+            "compose"
+          ],
+          "parameters": [
+            {
+              "name": "searchQuery",
+              "title": "Search Query",
+              "description": "search",
+              "inputType": "text"
+            }
+          ]
+        }
+      ],
+      "messageHandlers": [
+        {
+          "type": "link",
+          "value": {
+            "domains": [
+              "*.sinequa.com"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "*.sinequa.com",
+    "teams.microsoft.com",
+    "*.azurewebsites.net",
+    "*.ngrok.io",
+  ]
+}

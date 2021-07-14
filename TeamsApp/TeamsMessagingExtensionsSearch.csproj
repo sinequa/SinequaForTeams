@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <UserSecretsId>ff7c0dba-0acd-4d9f-9b96-0a6cd2da1602</UserSecretsId>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>5</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Remove="Pages\_Layout.cshtml" />
+    <Content Remove="Resources\json.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="appsettings - az inisght .json.bak" />
+    <None Remove="Resources\any32flat.png" />
+    <None Remove="Resources\doc32flat.png" />
+    <None Remove="Resources\html32flat.png" />
+    <None Remove="Resources\pdf32flat.png" />
+    <None Remove="Resources\ppt32flat.png" />
+    <None Remove="Resources\xls32flat.png" />
+    <None Remove="Resources\xml32flat.png" />
+    <None Remove="TeamsAppManifest\manifest.json-dev" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="appsettings - az inisght .json.bak" />
+    <Content Include="Resources\any32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\doc32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\html32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\pdf32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\ppt32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\xls32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\xml32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TeamsAppManifest\manifest.json-dev" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AdaptiveCards" Version="2.7.1" />
+    <PackageReference Include="AdaptiveCards.Templating" Version="1.2.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.33" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.15" />
+    <PackageReference Include="Microsoft.Bot.Builder.Azure" Version="4.13.1" />
+    <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.13.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="5.0.6" />
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Resources\txt32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

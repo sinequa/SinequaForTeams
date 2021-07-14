@@ -1,0 +1,92 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.0",
+  "body": [
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "${docTitle}",
+          "color": "accent",
+          "weight": "bolder",
+          "size": "large"
+        },
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "size": "auto",
+                  "style": "default",
+                  "type": "Image",
+                  "url": "${thumbnailUrl}"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${authorName}",
+                  "weight": "bolder",
+                  "wrap": true
+                },
+                {
+                  "type": "TextBlock",
+                  "spacing": "none",
+                  "text": "Last Modified {{DATE(${Modified}, SHORT)}} at {{TIME(${Modified})}}",
+                  "isSubtle": true,
+                  "wrap": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ActionSet",
+      "actions": [
+        {
+          "type": "Action.OpenUrl",
+          "title": "Open",
+          "url": "${directlinkUrl}"
+        },
+        {
+          "type": "Action.Submit",
+          "title": "Preview",
+          "data": {
+            "msteams": {
+              "type": "task/fetch"
+            },
+            "data": {
+              "actionid": "preview",
+              "url": "${previewUrl}"
+            }
+          }
+        },
+        {
+          "type": "Action.ShowCard",
+          "title": "Summary",
+          "card": {
+            "type": "AdaptiveCard",
+            "body": [
+              {
+                "type": "TextBlock",
+                "text": "${summary}",
+                "wrap": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
