@@ -11,7 +11,7 @@ This integration is an illustration of Search-based Messaging Extension (further
 
 - Office 365 account with Microsoft Teams  
 - Azure subscription.
-- Internet facing Sinequa APIs endpoint (api/v1) over HTTPS   
+- Sinequa APIs endpoint (api/v1) over HTTPS that can be consumed from your messaging endpoint (from Azure App Service by default). 
 
 
 ## Sinequa Bot deployment using Terraform 
