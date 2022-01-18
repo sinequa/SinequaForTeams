@@ -105,6 +105,6 @@
     "*.sinequa.com",
     "teams.microsoft.com",
     "*.azurewebsites.net",
-    "*.ngrok.io",
+    "*.ngrok.io"
   ]
 }
