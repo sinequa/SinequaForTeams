@@ -118,7 +118,7 @@ Step 1 corresponds to the first and second part of the [Microsoft documentation]
 
 Step 2 consists in modyfing your SBA in the following way:
   - In your package.json file, add the following dependency: `"@microsoft/teams-js": "^1.10.0"` and run `npm install`.
-  - Adding the provided [teams-login.ts](https://github.com/sinequa/SinequaForTeams/blob/main/Tab-SSO/teams-login.ts) file to your SBA (next to `app.module.ts`)
+  - Add the provided [teams-login.ts](https://github.com/sinequa/SinequaForTeams/blob/main/Tab-SSO/teams-login.ts) file to your SBA (next to `app.module.ts`)
   - Add the 2 following providers to your `app.module.ts` file:
 
 ```
@@ -127,6 +127,8 @@ Step 2 consists in modyfing your SBA in the following way:
 ```
 (where `APP_INITIALIZER` is imported from `@angular/common`, `AuthenticationService` from `@Sinequa/core/login` and the other ones from `./teams-login`)
   
+  - Finally, recompile the app.
+
 Step 3 consists in adding a [WebApp plugin](https://github.com/sinequa/SinequaForTeams/blob/main/Tab-SSO/TeamsWebappPlugin.cs) to the Sinequa WebApp hosting the SBA, so that it can validate the user identity. The attached plugin must be modified to match the specifics of your project. Particularly:
   - `sinequaDomain` is the security domain within which the user id provided by the SSO will be searched.
   - `sinequaAudience` corresponds to the app registration configured in Step 1 (in the form of `api://<Domain of the sinequa server>/<App registration id>`)
