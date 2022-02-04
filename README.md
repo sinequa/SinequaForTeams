@@ -127,7 +127,7 @@ Step 2 consists in modyfing your SBA in the following way:
 ```
 (where `APP_INITIALIZER` is imported from `@angular/common`, `AuthenticationService` from `@Sinequa/core/login` and the other ones from `./teams-login`)
   
-Step 3 consists in adding a [WebApp plugin](https://github.com/sinequa/SinequaForTeams/blob/main/Tab-SSO/TeamsWebAppPlugin.cs) to the Sinequa WebApp hosting the SBA, so that it can validate the user identity. The attached plugin must be modified to match the specifics of your project. Particularly:
+Step 3 consists in adding a [WebApp plugin](https://github.com/sinequa/SinequaForTeams/blob/main/Tab-SSO/TeamsWebappPlugin.cs) to the Sinequa WebApp hosting the SBA, so that it can validate the user identity. The attached plugin must be modified to match the specifics of your project. Particularly:
   - `sinequaDomain` is the security domain within which the user id provided by the SSO will be searched.
   - `sinequaAudience` corresponds to the app registration configured in Step 1 (in the form of `api://<Domain of the sinequa server>/<App registration id>`)
   - `sinequaIssuer` correponds to a tenant id for your company. If you have a doubt about this parameter, you can find it by decoding the JWT sent by Microsoft (using [jwt.io](https://jwt.io/)). The WebApp plugin just needs to check that the expected issuer matches the one in the JWT. (The plugin already logs the token and its issuer in the webapp logs).
