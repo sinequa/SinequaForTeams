@@ -16,9 +16,6 @@
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="SinequaPlugin\TeamsPlugin.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Remove="Pages\_Layout.cshtml" />
     <Content Remove="Resources\adaptive2.json" />
     <Content Remove="Resources\adaptiveCard.json" />
@@ -41,9 +38,6 @@
     <None Remove="Resources\xls32flat.png" />
     <None Remove="Resources\xml32flat.png" />
     <None Remove="TeamsAppManifest\manifest.json-dev" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="C:\dev\git\ice\distrib\data\configuration\plugins\Teams\TeamsPlugin.cs" Link="TeamsPlugin.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings - az inisght .json.bak" />
