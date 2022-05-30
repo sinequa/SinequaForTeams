@@ -17,21 +17,33 @@ using Newtonsoft.Json;
 using System.IO;
 using AdaptiveCards.Templating;
 using System;
-using System.Diagnostics;
 using System.Text;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
-using AdaptiveCards;
 using Activity = Microsoft.Bot.Schema.Activity;
 using Sinequa.Microsoft.Teams.Helper;
 using Sinequa.Microsoft.Teams.Models;
 using Microsoft.AspNetCore.WebUtilities;
+using Sinequa.Search;
+using Sinequa.Common;
+using Sinequa.Configuration;
+using Sinequa.Configuration.SBA;
+using Sinequa.Engine.Client;
+using Sinequa.Search.JsonMethods;
+using Sinequa.Plugins;
+using TeamsMessagingExtensionsSearch.SinequaPlugin;
+using System.Reflection;
+using Microsoft.Bot.Connector;
+
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.BotBuilderSamples;
+using Microsoft.Bot.Connector.Authentication;
 
 namespace Sinequa.Microsoft.Teams.Bots
 {
-    public class TeamsMessagingExtensionsSearchBot : TeamsActivityHandler
+    public class TeamsMessagingExtensionsSearchBot<T> : DialogBot<T> where T:Dialog
     {
 
         private readonly ILogger _logger;
@@ -45,12 +57,15 @@ namespace Sinequa.Microsoft.Teams.Bots
         private readonly string jwtBearerToken;
         private readonly string SINEQUA_LOGO = "https://ga1.imgix.net/logo/o/155731-1593616014-6035028?ixlib=rb-1.0.0&ch=Width%2CDPR&auto=format";
         private readonly int pageSize = 5;
+        private readonly string _connectionName;
 
-        public TeamsMessagingExtensionsSearchBot(IConfiguration configuration, ILogger<TeamsMessagingExtensionsSearchBot> logger)
+
+
+        public TeamsMessagingExtensionsSearchBot(ConversationState conversationState, UserState userState, T dialog, IConfiguration configuration, ILogger<TeamsMessagingExtensionsSearchBot<T>> logger)
+            :base(conversationState, userState, dialog, logger) 
         {
-
+            
             _logger = logger;
-
 
             if (_logger != null)
             {
@@ -69,15 +84,15 @@ namespace Sinequa.Microsoft.Teams.Bots
             domainName = configuration["Sinequa:Domain"];
             jwtBearerToken = configuration["JWT"];// _configuration["Sinequa:JWTAccessToken"];
             _baseUrl = configuration["Sinequa:BaseUrl"];
+            _connectionName = configuration["Sinequa:ConnectionName"];
 
             if (string.IsNullOrEmpty(jwtBearerToken))
             {
                 _logger.LogError("Cannot retrieve JWT Bearer Token");
             }
-            //TODO: to remove 
+            
             _microsoftAppId = configuration["MicrosoftAppId"];
             string MicrosoftAppPassword = configuration["MicrosoftAppPassword"];
-            //
 
             if (_logger != null)
             {
@@ -88,10 +103,10 @@ namespace Sinequa.Microsoft.Teams.Bots
                 _logger.LogInformation("Sinequa:Domain " + domainName);
                 _logger.LogInformation("Sinequa:BaseUrl " + _baseUrl);
 
-                //TODO: remove 
+                
                 _logger.LogInformation("MicrosoftAppId " + _microsoftAppId);
-                _logger.LogInformation("MicrosoftAppPassword " + MicrosoftAppPassword.Substring(0, 5) + "[...]");
-                _logger.LogInformation("jwtBearerToken " + jwtBearerToken.Substring(0, 5) + "[...]");
+                //_logger.LogInformation("MicrosoftAppPassword " + MicrosoftAppPassword.Substring(0, 5) + "[...]");
+                //_logger.LogInformation("jwtBearerToken " + jwtBearerToken.Substring(0, 5) + "[...]");
                 //
             }
 
@@ -167,7 +182,7 @@ namespace Sinequa.Microsoft.Teams.Bots
             _logger.LogInformation("Teams UserID  = " + user.Id + "Teams Username :user.Name = " + user.Name + " Azure AD ID= " + user.AadObjectId);
 
             //var packages = await FindResults(user.Id, queryText);
-            var records = await FindResults(user.AadObjectId, queryText);
+            var records = FindResults(user.AadObjectId, queryText);
 
             var attachments = records.Select(record =>
             {
@@ -202,11 +217,28 @@ namespace Sinequa.Microsoft.Teams.Bots
             //return await Task.FromResult(new MessagingExtensionActionResponse());
         }
 
+        protected override async Task OnSignInInvokeAsync(ITurnContext<IInvokeActivity> turnContext, CancellationToken cancellationToken)
+        {
+            await _dialog.RunAsync(turnContext, _conversationState.CreateProperty<DialogState>(nameof(DialogState)), cancellationToken);
+        }
+        protected override async Task OnTokenResponseEventAsync(ITurnContext<IEventActivity> turnContext, CancellationToken cancellationToken)
+        {
+            await _dialog.RunAsync(turnContext, _conversationState.CreateProperty<DialogState>(nameof(DialogState)), cancellationToken);
+        }
 
+        public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            await base.OnTurnAsync(turnContext, cancellationToken);
+
+            // Save any state changes that might have occurred during the turn.
+            await _conversationState.SaveChangesAsync(turnContext, false, cancellationToken);
+            await _userState.SaveChangesAsync(turnContext, false, cancellationToken);
+        }
 
         //Called when user is interacting with the chat in the bot channel 
         protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
         {
+
             if (turnContext.Activity.Value != null) // TODO Message from a card.
             {
                 var obj = (JObject)turnContext.Activity.Value;
@@ -218,22 +250,45 @@ namespace Sinequa.Microsoft.Teams.Bots
             {
                 var queryText = turnContext?.Activity?.Text;
 
+                if (String.IsNullOrWhiteSpace(queryText))
+                {
+                    if (turnContext.Activity?.Attachments?.Count >= 1)
+                    {
+                        await turnContext.SendActivityAsync("Sorry, I can only process queries from simple text. I can't handle attachements such as cards :(");
+                    }
+                    else
+                    {
+                        await turnContext.SendActivityAsync("Please enter a valid search query (Empty search not availaible from Teams Sinequa App)");
+                    }
+                    return;
+                }
+
                 var user = turnContext?.Activity.From;
                 var blob_storage_thumbnailurl = SINEQUA_LOGO + "&h=50&w=50";
 
                 _logger.LogInformation("Teams UserID  = " + user.Id + "Teams Username :user.Name = " + user.Name + " Azure AD ID= " + user.AadObjectId);
 
                 //var packages = await FindResults(user.Id, queryText);
-                var records = await FindResults(user.AadObjectId, queryText);
+                var records = FindResults(user.AadObjectId, queryText);
+
+                //var records = new List<(string, string, string, string, string, string, string, string, string, string, string)>();
 
                 //Response from FindResults- records=> id, authors, smallsummaryhtml, modified, treepath, url1, title, thumbnail, objectType, fileext,queryText
 
                 // We take every row of the results and wrap them in cards wrapped in in MessagingExtensionAttachment objects.
                 // The Preview is optional, if it includes a Tap, that will trigger the OnTeamsMessagingExtensionSelectItemAsync event back on this bot.
+                if(records == null)
+                {
+                    await turnContext.SendActivityAsync("Search error (is engine started ?)");
+                    return;
+                }
+
+
                 var attachments = records.Select(record =>
                 {
                     var template = GetAdaptiveCardTemplate("adaptive2.json");
                     var docCacheUrl = GetDocCacheURL(this.host, this.port, this.sinequa_app_name, this.sinequa_ws_query_name, record.Item1, queryText)?.AbsoluteUri;
+                    var docDirectLinkUrl = GetDirectLinkURL(this.host, this.port, this.sinequa_app_name, this.sinequa_ws_query_name, record.Item1, queryText)?.AbsoluteUri;
                     DateTime modifiedDT = DateTime.Now;
                     if (!DateTime.TryParse(record.Item4, out modifiedDT))
                     {
@@ -246,7 +301,7 @@ namespace Sinequa.Microsoft.Teams.Bots
                         Summary = StripHtml(record.Item3), // ConvertHTMLToMarkdown(relevantExtracts),  //<b>...</b>  //**...**  //encoding issue on author
                         ThumbnailUrl = image.ContentUrl,
                         PreviewUrl = docCacheUrl,
-                        DirectlinkUrl = record.Item6,
+                        DirectlinkUrl = docDirectLinkUrl,// record.Item6,
                         SourceTreepath = SourceFromTreePath(record.Item5),
                         AuthorName = StringCleanup(record.Item2),  //encoding issue 
                         FileType = record.Item9,
@@ -262,7 +317,10 @@ namespace Sinequa.Microsoft.Teams.Bots
                     return adaptiveCardAttachment;
                 }).ToList();
 
+                
+                var activity = MessageFactory.Carousel(attachments, attachments?.Count > 0 ? $"Here's what I found\r\n" : "Your search did not match any documents");
                 await turnContext.SendActivityAsync(MessageFactory.Carousel(attachments, attachments?.Count > 0 ? $"Here's what I found\r\n" : "Your search did not match any documents"), cancellationToken);
+
             }
 
         }
@@ -280,6 +338,7 @@ namespace Sinequa.Microsoft.Teams.Bots
         }
 
 
+
         /** 
          * MAIN SEARCH ENTRY POINT @SNQA ....)
          * This method is invoked when the user enters the query string in the Sinequa For Teams App. It triggers a Sinequa Backend Query , gets the responses
@@ -295,7 +354,7 @@ namespace Sinequa.Microsoft.Teams.Bots
             _logger.LogDebug("Teams UserID  = " + user.Id + "Teams Username :user.Name = " + user.Name + " Azure AD ID= " + user.AadObjectId);
 
             //var packages = await FindResults(user.Id, queryText);
-            var records = await FindResults(user.AadObjectId, queryText);
+            var records = FindResults(user.AadObjectId, queryText);
 
             //Response from FindResults- packages=> id, authors, smallsummaryhtml, modified, treepath, url1, title, thumbnail, objectType, fileext,queryText
 
@@ -321,7 +380,7 @@ namespace Sinequa.Microsoft.Teams.Bots
                 };
 
                 Attachment image = ImageFromExtension(record.Item10);
-                previewCard.Images = new List<CardImage>() { new CardImage(image.ContentUrl, record.Item10, "OpenUrl") };
+                previewCard.Images = new List<CardImage>() { new CardImage(image.ContentUrl, record.Item6, "OpenUrl") };
 
 
                 var attachment = new MessagingExtensionAttachment
@@ -394,8 +453,25 @@ namespace Sinequa.Microsoft.Teams.Bots
             ub.Path = $"/app/{appName}/";
             //workaround for the sharp sign (otherwise urlencoded by uribuilder), tried the fragment part  w/o success...
             ub.Query = $"#/preview?id={urlEncodedID}&query={urlEncodedJSonPayload}";
+
+            //ub.Path = $"/xdownload/html/~" + System.Net.WebUtility.UrlEncode(System.Net.WebUtility.UrlEncode("{\"query\":{ \"name\":\"" + queryWSName + "\",\"text\":\"" + queryText + "\"},\"app\":\"" + appName + "\",\"id\":\"" + id + "\"}"))+"~/file.htm";
             return ub.Uri;
         }
+
+        private static Uri GetDirectLinkURL(string host, int port, string appName, string queryWSName, string id, string queryText)
+        {
+            var urlEncodedID = System.Net.WebUtility.UrlEncode(id);
+            var urlEncodedJSonPayload = System.Net.WebUtility.UrlEncode($"{{\"name\":{ JsonConvert.SerializeObject(queryWSName)},\"text\":{JsonConvert.SerializeObject(queryText)}}}");
+            UriBuilder ub = new UriBuilder();
+            ub.Scheme = "https";
+            ub.Host = host;
+            ub.Port = port;
+            ub.Path = $"/app/{appName}/";
+            //workaround for the sharp sign (otherwise urlencoded by uribuilder), tried the fragment part  w/o success...
+            ub.Query = $"#/preview?id={urlEncodedID}&query={urlEncodedJSonPayload}";
+            return ub.Uri;
+        }
+
         //display the adaptive card  
         protected override Task<MessagingExtensionResponse> OnTeamsMessagingExtensionSelectItemAsync(ITurnContext<IInvokeActivity> turnContext, JObject query, CancellationToken cancellationToken)
         {
@@ -462,12 +538,12 @@ namespace Sinequa.Microsoft.Teams.Bots
                 DocTitle = title,
                 Summary = StripHtml(relevantExtracts), // ConvertHTMLToMarkdown(relevantExtracts),  //<b>...</b>  //**...**  //encoding issue on author
                 ThumbnailUrl = image.ContentUrl, //blob_storage_thumbnailurl,
-                PreviewUrl = DeeplinkHelper.GetPopUpDocCacheDeepLink(this._microsoftAppId, this._baseUrl, docCacheURL), //docCacheURL,
+                PreviewUrl = GetDirectLinkURL(this.host, this.port, this.sinequa_app_name, this.sinequa_ws_query_name, id, "")?.AbsoluteUri, //DeeplinkHelper.GetPopUpDocCacheDeepLink(this._microsoftAppId, this._baseUrl, docCacheURL), //docCacheURL,
                 DirectlinkUrl = url1,
                 SourceTreepath = treepath,
                 AuthorName = StringCleanup(authors),  //encoding issue 
                 FileType = fileext
-            };
+        };
 
             var previewCard = new HeroCard { Title = title, Text = relevantExtracts };
             // "Expand" the template - this generates the final Adaptive Card payload
@@ -495,13 +571,29 @@ namespace Sinequa.Microsoft.Teams.Bots
 
         private static AdaptiveCardTemplate GetAdaptiveCardTemplate(string templateName, string defaultTemplate=null)
         {
+            var fileStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeamsMessagingExtensionsSearch.Resources."+templateName);
 
-            string[] paths = { ".", "Resources", templateName };
-            if (defaultTemplate!=null && !File.Exists(Path.Combine(paths))) {
-                paths = new string[] { ".", "Resources", defaultTemplate };
+            string adaptiveCardJson;
+            AdaptiveCardTemplate template;
+            try
+            {
+                using (StreamReader reader = new StreamReader(fileStream))
+                {
+                    adaptiveCardJson = reader.ReadToEnd();
+                }
+
+                //string[] paths = { ".", "Resources", templateName };
+                //if (defaultTemplate!=null && !File.Exists(Path.Combine(paths))) {
+                //    paths = new string[] { ".", "Resources", defaultTemplate };
+                //}
+                //var adaptiveCardJson = File.ReadAllText(Path.Combine(paths));
+                template = new AdaptiveCardTemplate(adaptiveCardJson);
+            }catch(Exception ex)
+            {
+                if (defaultTemplate.Equals(templateName))
+                    throw;
+                return GetAdaptiveCardTemplate(defaultTemplate);
             }
-            var adaptiveCardJson = File.ReadAllText(Path.Combine(paths));
-            AdaptiveCardTemplate template = new AdaptiveCardTemplate(adaptiveCardJson);
             return template;
         }
 
@@ -536,7 +628,9 @@ namespace Sinequa.Microsoft.Teams.Bots
                     //search query => returns carousel
                     if (uri.Fragment.StartsWith("#/search?query=", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        string jsonPayload = uri.Fragment.Substring("#/search?query=".Length);
+
+                        string decodedFragment = System.Web.HttpUtility.HtmlDecode(uri.Fragment);
+                        string jsonPayload = decodedFragment.Substring("#/search?".Length);
                         jsonPayload = WebUtility.UrlDecode(jsonPayload);
                         if (jsonPayload.Length > 0)
                         {
@@ -597,7 +691,8 @@ namespace Sinequa.Microsoft.Teams.Bots
                     }
                     else if (uri.Fragment.StartsWith("#/preview?", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var queryParameters = QueryHelpers.ParseQuery(uri.Fragment.Substring("#/preview?".Length));
+                        string decodedFragment = System.Web.HttpUtility.HtmlDecode(uri.Fragment);
+                        var queryParameters = QueryHelpers.ParseQuery(decodedFragment.Substring("#/preview?".Length));
                         var docid = queryParameters?["id"];
                         if (!string.IsNullOrWhiteSpace(docid))
                         {
@@ -671,10 +766,111 @@ namespace Sinequa.Microsoft.Teams.Bots
          * Works fine for the purposes of the demo. If the code is hosted on a different server, the logic will change to pass the user's credentials (may be use JWT) . 
          * */
 
-        private async Task<IEnumerable<(string, string, string, string, string, string, string, string, string, string, string)>> FindResults(string userid, string text)
+        private IEnumerable<(string, string, string, string, string, string, string, string, string, string, string)> FindResults(string userid, string text)
         {
-            var payload = $"{{\"app\": \"{ sinequa_app_name }\", \"query\": {{ \"name\": \"{sinequa_ws_query_name }\", \"text\": { JsonConvert.ToString(text) } , \"pageSize\" : {pageSize} }} }}";
-            return await FindResultsFromPayload(userid, payload, text);
+
+            CC cc = CC.Current;
+
+            //CCPrincipal userPrincipal = cc.GetPrincipalAny(userid, domain);
+            CCPrincipal userPrincipal = cc.GetPrincipalByUserIds(userid);
+
+
+
+
+            //TODO : select a more specific engine to match the needs
+            CCEngine ccEngine = cc.CurrentEngine;
+            IEngineClient engineClient = EngineClientsPool.GetInstance().FromPool(ccEngine);
+
+
+
+            var ccquery = CC.Current.WebServices.Get("trainingquery")?.AsQuery();
+
+            BotQueryPlugin queryPlugin = new BotQueryPlugin();
+            queryPlugin.userid=userid;
+            queryPlugin.domain = this.domainName;
+
+            JQuery jquery = new JQuery();
+
+
+            //You can add a JsonMethodPlugin here to customize the behavior
+            //jquery.Plugin=...
+            jquery.CreateOrInitPlugin();
+
+
+            //{"app":"training-search",
+            //            "method": "queryintent",
+            //"debug":"true",
+            //"query": {
+            //                "name": "trainingquery",
+            //"text": "tower block"}
+            //        }
+            Json request = Json.NewObject();
+            request.Set("app", "training-search");
+            request.Set("method", "search");
+            Json query = Json.NewObject();
+            query.Set("name", "trainingquery");
+            query.Set("text", text);
+            query.Set("pageSize", 5);
+            //query.Set("isFirstPage", true);
+            request.Set("query", query);
+
+
+
+            jquery.JsonRequest=request;
+            jquery.JsonResponse = Json.NewObject();
+            queryPlugin.InitExecute(jquery, ccquery);
+
+            queryPlugin.Execute();
+
+            //queryPlugin.InitExecute(jquery, ccquery);
+
+            //queryPlugin.Init();
+
+            //jquery.
+
+            //jquery.Execute();
+
+            //queryPlugin.DoQuery();
+
+            Json records=jquery.JsonResponse.Get("records");
+
+            if (records==null)
+                return null;
+
+            return  records.EnumerateElements().Select(
+                record => (
+                record.ValueStr("id"),
+                record.ValueStr("authors"),
+                record.ValueStr("smallsummaryhtml")?.Length > 1 ? record.ValueStr("smallsummaryhtml") : record.ValueStr("relevantExtracts"),
+                record.ValueStr("modified"),
+                record.ValueStr("treepath"),
+                record.ValueStr("url1"),
+                record.ValueStr("title"),
+                record.ValueStr("thumbnailUrl"),
+                record.ValueStr("objectType"),
+                record.ValueStr("fileext"),
+                text
+
+                ));
+            
+
+            //var payload = $"{{\"app\": \"{ sinequa_app_name }\", \"query\": {{ \"name\": \"{sinequa_ws_query_name }\", \"text\": { JsonConvert.ToString(text) } , \"pageSize\" : {pageSize} }} }}";
+
+            //return response["records"].Select(
+            //item => (item["id"]?.ToString(),
+            //item["authors"]?.ToString(),
+            //item["smallsummaryhtml"]?.ToString().Length > 1 ? item["smallsummaryhtml"]?.ToString() : item["relevantExtracts"]?.ToString(),
+            //item["modified"]?.ToString(),
+            //item["treepath"]?.ToString(),
+            //item["url1"]?.ToString(),
+            //item["title"]?.ToString(),
+            //item["thumbnailUrl"]?.ToString(),
+            //item["objectType"]?.ToString(),
+            //item["fileext"]?.ToString(),
+            //text
+            //));
+
+            //return await FindResultsFromPayload(userid, payload, text);
         }
 
 
@@ -719,7 +915,7 @@ namespace Sinequa.Microsoft.Teams.Bots
             //=============================================================================
             var client = new HttpClient(handler);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtBearerToken);
-            client.DefaultRequestHeaders.Add("X-On-Behalf-Of", $"{domainName}|{userid}");
+            //client.DefaultRequestHeaders.Add("X-On-Behalf-Of", $"{domainName}|{userid}");
 
 
             //building Sinequa endpoint URL (here SBA v2) 
@@ -735,6 +931,7 @@ namespace Sinequa.Microsoft.Teams.Bots
 
             var endPoint = ub.Uri;
             HttpContent content = new StringContent(payload, Encoding.UTF8, "application/json");
+            content.Headers.Add("X-On-Behalf-Of", $"{domainName}|{userid}");
             HttpResponseMessage res = null;
             JObject jSonObject = null;
             string strResponse = null;
@@ -870,7 +1067,13 @@ namespace Sinequa.Microsoft.Teams.Bots
                 }
             }
             var imagePath = Path.Combine(Environment.CurrentDirectory, @"Resources", imageName);
-            var imageData = Convert.ToBase64String(File.ReadAllBytes(imagePath));
+            var fileStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TeamsMessagingExtensionsSearch.Resources." + imageName);
+
+            MemoryStream ms=new MemoryStream();
+            fileStream.CopyTo(ms);
+            var imageData = Convert.ToBase64String(ms.ToArray());
+
+            //var imageData = Convert.ToBase64String(File.ReadAllBytes(imagePath));
             return new Attachment
             {
                 Name = $"Resources\\{imageName}",
@@ -959,8 +1162,11 @@ namespace Sinequa.Microsoft.Teams.Bots
         //    };
         //}
 
-        protected override Task<TaskModuleResponse> OnTeamsTaskModuleFetchAsync(ITurnContext<IInvokeActivity> turnContext, TaskModuleRequest taskModuleRequest, CancellationToken cancellationToken)
+        protected override async Task<TaskModuleResponse> OnTeamsTaskModuleFetchAsync(ITurnContext<IInvokeActivity> turnContext, TaskModuleRequest taskModuleRequest, CancellationToken cancellationToken)
         {
+
+
+
             var asJobject = JObject.FromObject(taskModuleRequest.Data);
 
             var previewTask = asJobject.ToObject<CardTaskFetchValue<PreviewTask>>()?.Data;
@@ -970,16 +1176,35 @@ namespace Sinequa.Microsoft.Teams.Bots
             switch (previewTask.ActionId)
             {
                 case TaskModuleIds.Preview:
-                    taskInfo.Url = taskInfo.FallbackUrl = $"{_baseUrl}/preview?url={Convert.ToBase64String(Encoding.UTF8.GetBytes(previewTask.Url))}";
+                    //taskInfo.Url = taskInfo.FallbackUrl = $"{_baseUrl}/?#/preview?url={Convert.ToBase64String(Encoding.UTF8.GetBytes(previewTask.Url))}";
+                    taskInfo.Url = taskInfo.FallbackUrl = previewTask.Url;
                     SetTaskInfo(taskInfo, TaskModuleUIConstants.Preview);
                     break;
                 //More to be added ? 
                 default:
                     break;
             }
-
-            return Task.FromResult(taskInfo.ToTaskModuleResponse());
+            //var tmp = taskInfo.ToTaskModuleResponse();
+            return await Task.FromResult(taskInfo.ToTaskModuleResponse());
         }
+
+        //protected override Task<TaskModuleResponse> OnTeamsTaskModuleSubmitAsync(ITurnContext<IInvokeActivity> turnContext, TaskModuleRequest taskModuleRequest, CancellationToken cancellationToken)
+        //{
+        //    _logger.LogDebug("OnTeamsTaskModuleSubmitAsync called !");
+        //    return null;
+        //}
+
+        //protected override Task<InvokeResponse> OnTeamsCardActionInvokeAsync(ITurnContext<IInvokeActivity> turnContext, CancellationToken cancellationToken)
+        //{
+        //    _logger.LogDebug("OnTeamsCardActionInvokeAsync called !");
+        //    return null;
+        //}
+
+        //   protected override Task OnTeamsMessagingExtensionCardButtonClickedAsync(ITurnContext<IInvokeActivity> turnContext, JObject cardData, CancellationToken cancellationToken)
+        //{
+        //    _logger.LogDebug("OnTeamsMessagingExtensionCardButtonClickedAsync called !");
+        //    return null;
+        //}
 
         private static void SetTaskInfo(TaskModuleTaskInfo taskInfo, UISettings uIConstants)
         {
@@ -988,6 +1213,49 @@ namespace Sinequa.Microsoft.Teams.Bots
             taskInfo.Title = uIConstants.Title.ToString();
         }
 
+
+        protected override async  Task<InvokeResponse> OnInvokeActivityAsync(ITurnContext<IInvokeActivity> turnContext, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (turnContext.Activity.Name == SignInConstants.TokenExchangeOperationName && turnContext.Activity.ChannelId == Channels.Msteams)
+                {
+                    await OnTokenResponseEventAsync((ITurnContext <IEventActivity>) turnContext, cancellationToken);
+                    return new InvokeResponse() { Status = 200 };
+                }
+                else
+                {
+                    return await base.OnInvokeActivityAsync(turnContext, cancellationToken);
+                }
+            }
+            catch (InvokeResponseException e)
+            {
+                return e.CreateInvokeResponse();
+            }
+        }
+
+        private async Task<TokenResponse> GetTokenResponse(ITurnContext<IInvokeActivity> turnContext, string state, CancellationToken cancellationToken)
+        {
+            var magicCode = string.Empty;
+
+            if (!string.IsNullOrEmpty(state))
+            {
+                if (int.TryParse(state, out var parsed))
+                {
+                    magicCode = parsed.ToString();
+                }
+            }
+
+            var userTokenClient = turnContext.TurnState.Get<UserTokenClient>();
+            var tokenResponse = await userTokenClient.GetUserTokenAsync(turnContext.Activity.From.Id, _connectionName, turnContext.Activity.ChannelId, magicCode, cancellationToken).ConfigureAwait(false);
+            return tokenResponse;
+        }
+
+        private static async Task<HttpResponseMessage> PopUpSignInHandler(ITurnContext<IInvokeActivity> turnContext)
+        {
+            await turnContext.SendActivityAsync("Authentication Successful");
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }
 
     }
 }

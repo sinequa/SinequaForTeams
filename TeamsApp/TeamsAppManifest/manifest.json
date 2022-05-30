@@ -1,8 +1,9 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.9/MicrosoftTeams.schema.json",
-  "manifestVersion": "1.9",
-  "version": "0.104",
-  "id": "<<MSFTAPPID>>",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.11/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.11",
+  "version": "1.0.0",
+  "showLoadingIndicator": false,
+  "id": "e7340ec1-a658-4561-9161-f9e4998eeb11",
   "packageName": "com.sinequa.teams.searchExtension",
   "developer": {
     "name": "Sinequa",
@@ -23,10 +24,18 @@
     "short": "Sinequa 4 Teams",
     "full": "Search across various sources using the Sinequa search platform"
   },
-  "accentColor": "#ABCDEF",
+  "accentColor": "#FFFFFF",
   "staticTabs": [
     {
       "entityId": "conversations",
+      "scopes": [
+        "personal"
+      ]
+    },
+    {
+      "entityId": "local",
+      "name": "Local instance",
+      "contentUrl": "https://7708-46-255-177-187.eu.ngrok.io/app/training-search/",
       "scopes": [
         "personal"
       ]
@@ -48,7 +57,7 @@
   ],
   "bots": [
     {
-      "botId": "<<MSFTAPPID>>",
+      "botId": "e7340ec1-a658-4561-9161-f9e4998eeb11",
       "scopes": [
         "groupchat",
         "team",
@@ -60,7 +69,7 @@
   ],
   "composeExtensions": [
     {
-      "botId": "<<MSFTAPPID>>",
+      "botId": "e7340ec1-a658-4561-9161-f9e4998eeb11",
       "canUpdateConfiguration": true,
       "commands": [
         {
@@ -90,7 +99,9 @@
           "type": "link",
           "value": {
             "domains": [
-              "*.sinequa.com"
+              "*.sinequa.com",
+              "localhost",
+              "7708-46-255-177-187.eu.ngrok.io"
             ]
           }
         }
@@ -101,10 +112,22 @@
     "identity",
     "messageTeamMembers"
   ],
+  "devicePermissions": [
+    "openExternal"
+  ],
   "validDomains": [
     "*.sinequa.com",
     "teams.microsoft.com",
+    "token.botframework.com",
     "*.azurewebsites.net",
-    "*.ngrok.io"
+    "7708-46-255-177-187.eu.ngrok.io",
+    "localhost",
+    "ngrok.io",
+    "login.microsoftonline.com"
   ]
+  ,
+  "webApplicationInfo": {
+    "id": "e7340ec1-a658-4561-9161-f9e4998eeb11",
+    "resource": "api://7708-46-255-177-187.eu.ngrok.io/botid-e7340ec1-a658-4561-9161-f9e4998eeb11"
+  }
 }

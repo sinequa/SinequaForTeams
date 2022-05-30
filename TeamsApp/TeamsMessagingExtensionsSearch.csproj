@@ -1,18 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>9</LangVersion>
     <UserSecretsId>ff7c0dba-0acd-4d9f-9b96-0a6cd2da1602</UserSecretsId>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <OutputType>Exe</OutputType>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <OutputType>WinExe</OutputType>
+    <ApplicationIcon />
+    <StartupObject />
+    <Authors>Sinequa</Authors>
+    <Product>Sinequa</Product>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Prefer32Bit>false</Prefer32Bit>
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="SinequaPlugin\TeamsPlugin.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Remove="Pages\_Layout.cshtml" />
+    <Content Remove="Resources\adaptive2.json" />
+    <Content Remove="Resources\adaptiveCard.json" />
+    <Content Remove="Resources\document.json" />
     <Content Remove="Resources\json.json" />
   </ItemGroup>
   <ItemGroup>
@@ -20,46 +30,73 @@
     <None Remove="Resources\any32flat.png" />
     <None Remove="Resources\doc32flat.png" />
     <None Remove="Resources\html32flat.png" />
+    <None Remove="Resources\logo-192.png" />
+    <None Remove="Resources\logo.png" />
+    <None Remove="Resources\logo32.png" />
+    <None Remove="Resources\logo64.png" />
     <None Remove="Resources\pdf32flat.png" />
     <None Remove="Resources\ppt32flat.png" />
+    <None Remove="Resources\S32.png" />
+    <None Remove="Resources\txt32flat.png" />
     <None Remove="Resources\xls32flat.png" />
     <None Remove="Resources\xml32flat.png" />
     <None Remove="TeamsAppManifest\manifest.json-dev" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="C:\dev\git\ice\distrib\data\configuration\plugins\Teams\TeamsPlugin.cs" Link="TeamsPlugin.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="appsettings - az inisght .json.bak" />
-    <Content Include="Resources\any32flat.png">
+    <EmbeddedResource Include="Resources\any32flat.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\doc32flat.png">
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\doc32flat.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\html32flat.png">
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\html32flat.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\pdf32flat.png">
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\pdf32flat.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\ppt32flat.png">
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ppt32flat.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\xls32flat.png">
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\xls32flat.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\xml32flat.png">
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\xml32flat.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
     <Content Include="TeamsAppManifest\manifest.json-dev" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AdaptiveCards" Version="2.7.1" />
-    <PackageReference Include="AdaptiveCards.Templating" Version="1.2.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.33" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.15" />
-    <PackageReference Include="Microsoft.Bot.Builder.Azure" Version="4.13.1" />
-    <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.13.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="5.0.6" />
+    <EmbeddedResource Include="Resources\adaptive2.json" />
+    <EmbeddedResource Include="Resources\adaptiveCard.json" />
+    <EmbeddedResource Include="Resources\document.json" />
+    <EmbeddedResource Include="Resources\logo-192.png" />
+    <EmbeddedResource Include="Resources\logo.png" />
+    <EmbeddedResource Include="Resources\logo32.png" />
+    <EmbeddedResource Include="Resources\logo64.png" />
+    <EmbeddedResource Include="Resources\S32.png" />
+    <EmbeddedResource Include="Resources\txt32flat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AdaptiveCards.Templating" Version="1.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.4" />
+    <PackageReference Include="Microsoft.Bot.Builder.Azure" Version="4.16.0" />
+    <PackageReference Include="Microsoft.Bot.Builder.Dialogs" Version="4.16.1" />
+    <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.16.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="6.0.4" />
+    <PackageReference Include="Microsoft.Graph" Version="4.29.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="sinequa">
+      <HintPath>..\..\..\ice\distrib\bin\sinequa.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
@@ -74,9 +111,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <None Update="Resources\txt32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	    <Exec Command="powershell.exe Compress-Archive -Path \&quot;$(ProjectDir)TeamsAppManifest\*\&quot; -DestinationPath \&quot;$(TargetDir)sinequaApp.zip\&quot; -Force" />
+    </Target>
 </Project>

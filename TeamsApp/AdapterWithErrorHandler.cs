@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Extensions.Configuration;
@@ -8,15 +9,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Sinequa.Microsoft.Teams
 {
-    public class AdapterWithErrorHandler : BotFrameworkHttpAdapter
+    public class AdapterWithErrorHandler : CloudAdapter
     {
-        public AdapterWithErrorHandler(IConfiguration configuration, ILogger<BotFrameworkHttpAdapter> logger)
-            : base(configuration, logger)
+        //public AdapterWithErrorHandler(IConfiguration configuration, ILogger<BotFrameworkHttpAdapter> logger)
+
+
+        public AdapterWithErrorHandler(IConfiguration configuration)
+            : base(configuration)
         {
             OnTurnError = async (turnContext, exception) =>
             {
-                // Log any leaked exception from the application.
-                logger.LogError(exception, $"[OnTurnError] unhandled error : {exception.Message}");
+                //// Log any leaked exception from the application.
+                //if(logger!=null)
+                //    logger.LogError(exception, $"[OnTurnError] unhandled error : {exception.Message}");
 
                 // Send a message to the user
                 await turnContext.SendActivityAsync("The bot encountered an error or bug.");
@@ -25,6 +30,7 @@ namespace Sinequa.Microsoft.Teams
                 // Send a trace activity, which will be displayed in the Bot Framework Emulator
                 await turnContext.TraceActivityAsync("OnTurnError Trace", exception.Message, "https://www.botframework.com/schemas/error", "TurnError");
             };
+
         }
     }
 }
