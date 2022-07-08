@@ -5,20 +5,19 @@
     <LangVersion>9</LangVersion>
     <UserSecretsId>ff7c0dba-0acd-4d9f-9b96-0a6cd2da1602</UserSecretsId>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <ApplicationIcon />
     <StartupObject />
     <Authors>Sinequa</Authors>
     <Product>Sinequa</Product>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Prefer32Bit>false</Prefer32Bit>
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="Pages\_Layout.cshtml" />
     <Content Remove="Resources\adaptive2.json" />
-    <Content Remove="Resources\adaptiveCard.json" />
     <Content Remove="Resources\document.json" />
     <Content Remove="Resources\json.json" />
   </ItemGroup>
@@ -40,51 +39,17 @@
     <None Remove="TeamsAppManifest\manifest.json-dev" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="appsettings - az inisght .json.bak" />
-    <EmbeddedResource Include="Resources\any32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\doc32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\html32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pdf32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\ppt32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\xls32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\xml32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <Content Include="TeamsAppManifest\manifest.json-dev" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\adaptive2.json" />
-    <EmbeddedResource Include="Resources\adaptiveCard.json" />
-    <EmbeddedResource Include="Resources\document.json" />
-    <EmbeddedResource Include="Resources\logo-192.png" />
     <EmbeddedResource Include="Resources\logo.png" />
     <EmbeddedResource Include="Resources\logo32.png" />
-    <EmbeddedResource Include="Resources\logo64.png" />
-    <EmbeddedResource Include="Resources\S32.png" />
-    <EmbeddedResource Include="Resources\txt32flat.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AdaptiveCards" Version="2.7.3" />
     <PackageReference Include="AdaptiveCards.Templating" Version="1.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.4" />
     <PackageReference Include="Microsoft.Bot.Builder.Azure" Version="4.16.0" />
     <PackageReference Include="Microsoft.Bot.Builder.Dialogs" Version="4.16.1" />
     <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.16.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="6.0.4" />
-    <PackageReference Include="Microsoft.Graph" Version="4.29.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
@@ -92,20 +57,7 @@
       <HintPath>..\..\..\ice\distrib\bin\sinequa.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	    <Exec Command="powershell.exe Compress-Archive -Path \&quot;$(ProjectDir)TeamsAppManifest\*\&quot; -DestinationPath \&quot;$(TargetDir)sinequaApp.zip\&quot; -Force" />
+	    <Exec Command="powershell.exe Compress-Archive -Path \&quot;$(ProjectDir)TeamsAppManifest\*\&quot; -DestinationPath \&quot;$(TargetDir)SinequaForTeamsApp.zip\&quot; -Force;&#xD;&#xA;powershell.exe Compress-Archive -Path \&quot;$(ProjectDir)Resources\*\&quot; -DestinationPath \&quot;$(TargetDir)Resources.zip\&quot; -Force" />
     </Target>
 </Project>

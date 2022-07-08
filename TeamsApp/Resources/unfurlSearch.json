@@ -1,0 +1,71 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "${Title}",
+          "color": "accent",
+          "weight": "bolder",
+          "size": "large"
+        },
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "size": "auto",
+                  "style": "default",
+                  "type": "Image",
+                  "url": "${logoUrl}"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${SearchDescription}",
+                  "weight": "bolder",
+                  "wrap": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ActionSet",
+      "actions": [
+        {
+          "type": "Action.OpenUrl",
+          "title": "Open in browser",
+          "url": "${directlinkUrl}"
+        },
+        {
+          "type": "Action.Submit",
+          "title": "Open in Teams",
+          "data": {
+            "msteams": {
+              "type": "task/fetch"
+            },
+            "data": {
+              "actionid": "preview",
+              "url": "${previewUrl}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

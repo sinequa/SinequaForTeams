@@ -1,18 +1,11 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Microsoft.Bot.Builder.TraceExtensions;
+﻿using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Sinequa.Web.TeamsBot;
 
 namespace Sinequa.Microsoft.Teams
 {
-    public class AdapterWithErrorHandler : CloudAdapter
+    public class AdapterWithErrorHandler : TeamsAdapter
     {
-        //public AdapterWithErrorHandler(IConfiguration configuration, ILogger<BotFrameworkHttpAdapter> logger)
-
 
         public AdapterWithErrorHandler(IConfiguration configuration)
             : base(configuration)
