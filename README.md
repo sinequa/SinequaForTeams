@@ -1,5 +1,14 @@
 # SinequaForTeams
 
+---
+**December 2022 Update**
+
+This integration is not required anymore as the Teams integration is now part of the **11.9.0** Sinequa release.
+
+This repository will be closed shortly.
+
+---
+
 # Sample Integration into Microsoft Teams
 
 [Messaging Extensions](https://docs.microsoft.com/en-us/microsoftteams/platform/messaging-extensions/what-are-messaging-extensions) are a special kind of Microsoft Teams application that is support by the [Bot Framework](https://dev.botframework.com) v4.
